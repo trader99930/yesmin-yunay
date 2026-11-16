@@ -1,0 +1,10 @@
+*.apk
+*.ap_
+*.idsig
+*.dex.cache
+*.log
+.DS_Store
+__pycache__/
+*.pyc
+assets/model-en-us/
+lib/

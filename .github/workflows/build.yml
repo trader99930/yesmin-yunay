@@ -1,0 +1,54 @@
+name: Build and Release Yesmin AI Assistant APK
+
+on:
+  push:
+    branches: [ main, master ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up Android SDK Build-Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y zipalign apksigner
+
+      - name: Build & Sign APK
+        run: |
+          python3 build_apk.py
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Yesmin-AI-Assistant-APK
+          path: Yesmin.apk
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        uses: softprops/action-gh-release@v1
+        with:
+          files: Yesmin.apk
+          name: Yesmin AI Assistant Release
+          body: |
+            ## 🌌 Yesmin AI Assistant v2.5.0
+            - ⚡ Gemini 3.1 Flash Live (Ultra-Low Latency Voice)
+            - 🪐 3D Celestial Hologram HUD with dynamic voice pulse
+            - 🎙️ Vosk Offline Speech Recognition
+            - 📱 Native Settings & YouTube Automation
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
