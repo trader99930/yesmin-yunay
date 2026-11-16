@@ -1,0 +1,59 @@
+name: Build Yesmin Windows EXE
+
+on:
+  push:
+    paths:
+      - 'yesmin-windows/**'
+      - '.github/workflows/build-windows.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Dependencies
+        run: |
+          cd yesmin-windows
+          npm install
+
+      - name: Build Windows Executables (.exe)
+        run: |
+          cd yesmin-windows
+          npm run build:win
+
+      - name: Upload Windows EXE Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Yesmin-AI-Assistant-Windows-EXE
+          path: yesmin-windows/dist/*.exe
+          if-no-files-found: error
+
+      - name: Release Windows EXE
+        uses: softprops/action-gh-release@v2
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: windows-v2.5.0
+          name: Yesmin AI Assistant Windows EXE (v2.5.0)
+          files: yesmin-windows/dist/*.exe
+          body: |
+            ## 🌌 Yesmin AI Assistant v2.5.0 (Windows Edition)
+            - 💻 Native 64-bit Windows Executables (.EXE)
+            - 📦 Includes Installer Setup & Single-File Portable Version
+            - 🪐 3D Celestial Hologram HUD with dynamic voice pulse
+            - ⚡ Gemini Multimodal Voice & Vision Screen AI
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
