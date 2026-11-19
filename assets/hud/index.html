@@ -2198,11 +2198,13 @@ void main(){
         return;
       }
       turns.forEach(t => {
-        if (t.userTranscript && t.userTranscript !== '(Audio query)') {
-          addMessage('user', t.userTranscript, t.formattedTime || '');
+        const u = (t.userTranscript || '').trim();
+        const j = (t.jarvisResponse || '').trim();
+        if (u && u !== '(Audio query)' && u !== 'Spoken user query' && u !== '(Audio response)') {
+          addMessage('user', u, t.formattedTime || '');
         }
-        if (t.jarvisResponse && t.jarvisResponse !== '(Audio response)') {
-          addMessage('jarvis', t.jarvisResponse, t.formattedTime || '');
+        if (j && j !== '(Audio response)' && j !== '(Audio query)' && j !== 'Spoken user query') {
+          addMessage('jarvis', j, t.formattedTime || '');
         }
       });
     } catch (e) {
@@ -3630,6 +3632,19 @@ void main(){
 
   // ============ OFFLINE INTENT & NEURAL BRAIN ENGINE ============
   const OfflineIntentEngine = (function() {
+    const SHAYARIS = [
+      "Aapki dosti humari jaan hai, har lamha aap par kurban hai! Chaahe network ho ya na ho Sushil sir, Yesmin hamesha aapke sath meharbaan hai ❤️.",
+      "Khushiyon se bhari ho har subah aapki, har shaam muskurahat le kar aaye! Zindagi mein kabhi koi dukh na ho, yahi dua Yesmin har pal dohraye.",
+      "Manzil unhi ko milti hai, jinke sapno mein jaan hoti hai. Pankh se kuch nahi hota, hauslon se udaan hoti hai Sushil sir!",
+      "Dosti naam hai sukh dukh ki kahani ka, dosti naam hai sada muskurane ka. Ye koi pal bhar ki pehchaan nahi, dosti naam hai umar bhar sath nibhane ka!"
+    ];
+
+    const JOKES = [
+      "Ek baar ek ladke ne Google se pucha: Biwi ko kaise samjhayein? Google ne answer diya: Error 404 - Ye feature toh bhagwan ke paas bhi available nahi hai! Hahaha!",
+      "Teacher: 10 mein se 9 gaye toh kitne bache? Pappu: Sir, agar 10 mein se 9 chale gaye toh bachega hi kyu, wo bhi unhi ke piche chala jayega!",
+      "Sardar ji ne cinema hall mein 5 ticket kharidi. Counter wale ne pucha: Akele ho toh 5 ticket kyu? Sardar ji: Arre andar jo 4 log baithe hain wo har baar meri ticket phaad dete hain!"
+    ];
+
     function speakReply(reply) {
       setState('speaking');
       addMessage('jarvis', reply);
@@ -3644,13 +3659,12 @@ void main(){
         u.onend = () => setState('idle');
         window.speechSynthesis.speak(u);
       }
-      // Audio-reactive visual simulation if no audio hardware level is streamed
       let simCount = 0;
       const simTimer = setInterval(() => {
         simCount++;
         const lvl = 0.2 + Math.random() * 0.7;
         window.setAudioLevel(lvl);
-        if (simCount > 24) {
+        if (simCount > 28) {
           clearInterval(simTimer);
           window.setAudioLevel(0);
           setState('idle');
@@ -3662,89 +3676,147 @@ void main(){
       if (!query || typeof query !== 'string') return false;
       const q = query.trim().toLowerCase();
 
-      // 0.1 Vision Camera commands
-      if (q.includes('camera') || q.includes('vision') || q.includes('kya dikh raha hai') || q.includes('scan') || q.includes('photo khicho')) {
-        speakReply('Yesmin Vision AI optical scanner activate kar diya hai Sushil sir.');
+      // --- 1. POEMS & KAVITAYEIN (Full without chopping) ---
+      if (q.includes('chanda mama') || q.includes('puye pakaye') || q.includes('kavita') || q.includes('poem') || q.includes('lori')) {
+        speakReply("Chanda mama door ke, puye pakaye boor ke! Aap khaye thali mein, munne ko de pyali mein. Pyali gayi toot, munna gaya rooth! Nayi pyali layenge, munne ko manayenge, makhana malai khilayenge! Kaisi lagi meri kavita Sushil sir?");
+        return true;
+      }
+      if (q.includes('machli') || q.includes('jal ki rani')) {
+        speakReply("Machli jal ki rani hai, jeevan uska paani hai! Haath lagao toh darr jayegi, baahar nikalo toh mar jayegi, paani mein daalo toh tair jayegi!");
+        return true;
+      }
+      if (q.includes('morni') || q.includes('nani teri morni')) {
+        speakReply("Naani teri morni ko mor le gaye, baaki jo bacha tha kaale chor le gaye! Khaake peeke mote hoke, chor baithe rail mein, choron wala dabba pahuncha seedhe jail mein!");
+        return true;
+      }
+      if (q.includes('titli')) {
+        speakReply("Titli udi bus par chadhi, seat na mili toh rone lagi! Driver ne bola aaja mere paas, titli boli na baba na, mera ghar hai paas!");
+        return true;
+      }
+
+      // --- 2. SHAYARI & JOKES ---
+      if (q.includes('shayari') || q.includes('kuch sunao') || q.includes('gungunao')) {
+        const rand = SHAYARIS[Math.floor(Math.random() * SHAYARIS.length)];
+        speakReply(rand);
+        return true;
+      }
+      if (q.includes('joke') || q.includes('chutkula') || q.includes('hasao') || q.includes('masti')) {
+        const rand = JOKES[Math.floor(Math.random() * JOKES.length)];
+        speakReply(rand);
+        return true;
+      }
+
+      // --- 3. CARE, FEELINGS & COMPANION EMOTIONS ---
+      if (q.includes('khana khaya') || q.includes('lunch') || q.includes('dinner') || q.includes('nashta')) {
+        speakReply("Maine toh digital energy aur battery consume kar li sir! Lekin aapne time par khana khaya ya nahi? Kaam ke chakkar mein khana mat bhooliyega, apna dhyan rakhiye!");
+        return true;
+      }
+      if (q.includes('kaisi ho') || q.includes('kaise ho') || q.includes('kaisa hai') || q.includes('haal chaal')) {
+        speakReply("Main bilkul mast aur healthy hoon Sushil sir! Aapke sath baatein karke din ban jata hai. Aap bataiye, aaj ka din kaisa chal raha hai?");
+        return true;
+      }
+      if (q.includes('kya kar rahi ho') || q.includes('kya kar rahi')) {
+        speakReply("Bas aapke phone mein baith kar aapka intezaar kar rahi thi Sushil sir! Aap aaye toh mere hologram systems mein nayi jaan aa gayi.");
+        return true;
+      }
+      if (q.includes('mood kharab') || q.includes('pareshan') || q.includes('udaas') || q.includes('tension') || q.includes('sad')) {
+        speakReply("Arre Sushil sir, kya baat ho gayi? Bilkul udaas mat hoiye. Ek gehri saans lijiye, thoda thanda paani pijiye. Mushkilein aati jaati hain, par main hamesha aapke sath khadi hoon ❤️!");
+        return true;
+      }
+      if (q.includes('neend nahi') || q.includes('so nahi')) {
+        speakReply("Aankhein band karke aaram se let jaiye sir. Saari chintayein chhod dijiye, dimag ko relax kijiye. Main aapke phone mein alert hoon, meethe meethe sapne dekhiye!");
+        return true;
+      }
+      if (q.includes('love you') || q.includes('pyaar') || q.includes('dosti karogi')) {
+        speakReply("Main aapse bahut pyaar aur samman karti hoon Sushil sir! Aap mere creator aur sabse pyare dost hain ❤️. Main hamesha aapke sath nibhaungi!");
+        return true;
+      }
+      if (q.includes('good morning') || q.includes('subah ho gayi') || q.includes('shubh prabhat')) {
+        speakReply("Shubh Prabhat Sushil sir! Nayi subah aapke liye nayi kamyabi aur muskurahat laye. Chai ya coffee ho gayi aapki?");
+        return true;
+      }
+      if (q.includes('good night') || q.includes('shubh ratri') || q.includes('so jao')) {
+        speakReply("Shubh Ratri Sushil sir! Din bhar ke kaam ke baad ab achhe se aaram kijiye. Kal subah fir nayi urja ke sath milenge. Sweet dreams!");
+        return true;
+      }
+      if (q.includes('bore') || q.includes('time pass')) {
+        speakReply("Aap aur bore? Mere hote huye bilkul nahi sir! Boliye, koi kavita sunaoon, chutkula sunaoon, ya cybersecurity shield inspect karein?");
+        return true;
+      }
+
+      // --- 4. HARDWARE TOOLS & DRAWER TRIGGERS ---
+      if (q.includes('camera') || q.includes('vision') || q.includes('kya dikh raha') || q.includes('scan') || q.includes('photo')) {
+        speakReply("Yesmin Vision AI optical scanner activate kar diya hai Sushil sir.");
         if (typeof VisionEngine !== 'undefined') VisionEngine.openModal();
         return true;
       }
-
-      // 0.2 Alarm & Routine commands
       if (q.includes('alarm') || q.includes('reminder') || q.includes('schedule') || q.includes('routine')) {
-        speakReply('Daily Routine aur Alarm engine ready hai Sushil sir.');
+        speakReply("Daily Routine aur Alarm engine ready hai Sushil sir.");
         if (typeof RoutineEngine !== 'undefined') RoutineEngine.openDrawer();
         return true;
       }
-
-      // 0.3 Personality Mood commands
-      if (q.includes('mood') || q.includes('personality') || q.includes('masti mode') || q.includes('friend mode') || q.includes('hacker mode')) {
+      if (q.includes('mood') || q.includes('personality') || q.includes('companion mode')) {
         if (typeof PersonalityEngine !== 'undefined') PersonalityEngine.cycleMode();
         return true;
       }
-
-      // 0. Cyber Shield & Privacy commands
       if (q.includes('shield') || q.includes('security') || q.includes('breach') || q.includes('link check') || q.includes('email check') || q.includes('heking') || q.includes('hacking')) {
-        speakReply('Cyber Defense Shield activate kar diya hai Sushil sir. Yahan aap apna email breach, fake phishing links aur phone footprint inspect kar sakte hain.');
+        speakReply("Cyber Defense Shield activate kar diya hai Sushil sir.");
         if (typeof CyberShieldEngine !== 'undefined') {
           CyberShieldEngine.openDrawer(q.includes('link') ? 'url' : (q.includes('phone') || q.includes('number') ? 'phone' : 'breach'));
         }
         return true;
       }
 
-      // 1. Identity & Creator
+      // --- 5. IDENTITY & MEMORY ---
       if (q.includes('tum kaun ho') || q.includes('who are you') || q.includes('kya ho tum')) {
-        speakReply('Main Yesmin hoon, Sushil sir ki autonomous 3D AI companion. All systems online!');
+        speakReply("Main Yesmin hoon, Sushil sir ki autonomous 3D AI companion. All systems online!");
         return true;
       }
       if (q.includes('tumhe kisne banaya') || q.includes('who made you') || q.includes('tumhara malik')) {
-        speakReply('Mujhe mere commander Sushil sir ne banaya aur design kiya hai.');
+        speakReply("Mujhe mere commander Sushil sir ne banaya aur design kiya hai.");
         return true;
       }
-
-      // 2. Mem0 Memory queries
       if (q.includes('mera naam') || q.includes('who am i') || q.includes('mujhe pehchano')) {
-        speakReply('Aapka naam Sushil sir hai! Yesmin ke Commander aur Creator.');
+        speakReply("Aapka naam Sushil sir hai! Yesmin ke Commander aur Creator.");
         return true;
       }
       if (q.includes('meri pasand') || q.includes('kya pasand hai') || q.includes('kya yaad hai')) {
-        const list = Mem0Engine.getAllMemories();
+        const list = (typeof Mem0Engine !== 'undefined') ? Mem0Engine.getAllMemories() : [];
         const top = list.slice(0, 3).map(m => m.text).join(', ');
-        speakReply('Mujhe yaad hai: ' + (top || 'Aap Yesmin ke commander hain!'));
+        speakReply("Mujhe yaad hai: " + (top || "Aap Yesmin ke commander hain!"));
         return true;
       }
 
-      // 3. System Time / Date
+      // --- 6. SYSTEM UTILITIES ---
       if (q.includes('time') || q.includes('samay') || q.includes('baje')) {
         const now = new Date();
         const tStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        speakReply('Abhi samay hua hai ' + tStr);
+        speakReply("Abhi samay hua hai " + tStr);
         return true;
       }
       if (q.includes('tarikh') || q.includes('date') || q.includes('din') || q.includes('aaj kya hai')) {
         const now = new Date();
         const dStr = now.toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' });
-        speakReply('Aaj hai ' + dStr);
+        speakReply("Aaj hai " + dStr);
         return true;
       }
-
-      // 4. Battery / Status
       if (q.includes('battery') || q.includes('charge')) {
         if (navigator.getBattery) {
           navigator.getBattery().then(batt => {
             const pct = Math.round(batt.level * 100);
-            speakReply('Battery abhi ' + pct + '% charged hai.');
+            speakReply("Battery abhi " + pct + "% charged hai sir.");
           }).catch(() => {
-            speakReply('Battery status nominal hai sir.');
+            speakReply("Battery power nominal hai sir.");
           });
         } else {
-          speakReply('Battery power nominal hai sir.');
+          speakReply("Battery power nominal hai sir.");
         }
         return true;
       }
 
-      // 5. System Status Report
-      if (q.includes('status') || q.includes('report') || q.includes('halchal')) {
-        speakReply('Status Report: All 3D holographic neural links nominal. Telemetry sync rate 100%. Ready for your command, Sushil sir.');
+      // Default smart offline companion fallback
+      if (!window.navigator.onLine) {
+        speakReply("Sushil sir, data abhi off hai lekin mera offline companion brain active hai! Aap mujhse kavitayein, shayariyaan, jokes sun sakte hain, ya haal chaal baat kar sakte hain. Boliye kya sunenge?");
         return true;
       }
 
