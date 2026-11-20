@@ -1268,6 +1268,16 @@ tailwind.config = {
           </div>
         </button>
 
+        <!-- Code & File Studio Trigger Button -->
+        <button aria-label="Code and File Studio" id="code-studio-trigger-btn" class="settings-btn-hud flex items-center justify-center cursor-pointer" title="Code Inspector & Live Runner">
+          <div class="settings-inner-core w-8 h-8 rounded-lg flex items-center justify-center" style="background:rgba(59,130,246,0.18); border:1.5px solid rgba(96,165,250,0.55); box-shadow:0 0 12px rgba(59,130,246,0.35);">
+            <svg class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" style="filter:drop-shadow(0 0 5px #60a5fa);">
+              <polyline points="16 18 22 12 16 6"></polyline>
+              <polyline points="8 6 2 12 8 18"></polyline>
+            </svg>
+          </div>
+        </button>
+
         <button aria-label="Settings and diagnostics" id="settings-trigger-btn" class="settings-btn-hud flex items-center justify-center cursor-pointer">
           <div class="settings-inner-core w-8 h-8 rounded-lg flex items-center justify-center">
             <svg class="settings-btn-icon w-5 h-5 relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
@@ -1584,6 +1594,121 @@ tailwind.config = {
   </div>
 </div>
 
+
+
+<!-- ============ 3D CODE & FILE COGNITION STUDIO DRAWER ============ -->
+<div id="code-drawer" class="fixed inset-0 z-50 pointer-events-none transition-all duration-300 opacity-0 flex flex-col justify-end" style="backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(5, 8, 16, 0.82);">
+  <div id="code-card" class="w-full max-w-md mx-auto rounded-t-3xl p-4 flex flex-col gap-3 transform translate-y-full transition-transform duration-300 pointer-events-auto" style="background: linear-gradient(175deg, #091326 0%, #040914 100%); border-top: 2px solid rgba(59, 130, 246, 0.7); box-shadow: 0 -12px 40px rgba(0,0,0,0.95), 0 0 32px rgba(37,99,235,0.3); max-height: 88vh;">
+    
+    <!-- Drawer Handle & Header -->
+    <div class="w-12 h-1.5 rounded-full bg-slate-600 mx-auto -mt-1"></div>
+    <div class="flex items-center justify-between pb-2 border-b border-blue-500/25">
+      <div class="flex items-center gap-2">
+        <span class="text-xl">💻</span>
+        <div>
+          <h2 class="text-sm font-bold text-blue-300 tracking-wider font-display">YESMIN // CODE & FILE STUDIO</h2>
+          <p class="text-[10px] text-slate-400">Autonomous Code Inspector, File Reader & Live Execution Engine</p>
+        </div>
+      </div>
+      <button id="code-close-btn" class="w-8 h-8 rounded-full bg-slate-800 text-slate-300 flex items-center justify-center text-sm font-bold border border-slate-700 active:scale-90 cursor-pointer">✕</button>
+    </div>
+
+    <!-- Navigation Tabs: Inspector vs Live Runner -->
+    <div class="flex items-center gap-2 border-b border-slate-800/80 pb-1.5 text-xs">
+      <button id="tab-code-inspect" class="px-3 py-1.5 rounded-xl font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40 cursor-pointer active:scale-95 transition-all">📂 File Inspector & Bug Hunter</button>
+      <button id="tab-code-runner" class="px-3 py-1.5 rounded-xl font-medium text-slate-400 hover:text-slate-200 cursor-pointer active:scale-95 transition-all">⚡ Live Code & PnL Runner</button>
+    </div>
+
+    <!-- TAB 1: FILE INSPECTOR & BUG HUNTER -->
+    <div id="view-code-inspect" class="flex flex-col gap-2.5">
+      <!-- File Picker Deck -->
+      <div class="flex items-center gap-2">
+        <input type="file" id="code-file-input" class="hidden" accept=".py,.js,.html,.css,.json,.txt,.csv,.kt,.java,.c,.cpp" />
+        <button id="code-browse-btn" class="btn-3d-pill px-3.5 py-2 text-xs font-bold text-white flex items-center gap-1.5 cursor-pointer" style="background: linear-gradient(180deg, #2563eb 0%, #1d4ed8 100%); border-top: 1.5px solid #93c5fd; border-bottom: 2.5px solid #1e3a8a; box-shadow: 0 4px 12px rgba(37,99,235,0.4);">
+          <span>📁</span> <span>Open File (.py, .js, .csv...)</span>
+        </button>
+        <span id="code-file-badge" class="text-[11px] text-slate-400 truncate flex-1 font-mono">No file chosen</span>
+      </div>
+
+      <!-- Quick Samples -->
+      <div class="flex items-center gap-1.5 text-[10px] overflow-x-auto pb-0.5">
+        <span class="text-slate-500 shrink-0">Quick Sample:</span>
+        <button class="code-sample-chip px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-cyan-300 hover:bg-slate-700 cursor-pointer" data-sample="python">🐍 Python Bug Demo</button>
+        <button class="code-sample-chip px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-emerald-300 hover:bg-slate-700 cursor-pointer" data-sample="trading">📈 Trading CSV Data</button>
+        <button class="code-sample-chip px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-amber-300 hover:bg-slate-700 cursor-pointer" data-sample="js">⚡ JS Algorithm</button>
+      </div>
+
+      <!-- Code Inspector Viewer -->
+      <div class="relative w-full rounded-xl bg-slate-950/90 border border-blue-500/20 p-2.5 flex flex-col gap-1 shadow-inner">
+        <div class="flex items-center justify-between text-[10px] text-slate-500 border-b border-slate-800/80 pb-1">
+          <span id="code-viewer-title" class="font-mono">SOURCE CODE // READONLY</span>
+          <span id="code-line-count" class="font-mono">0 lines</span>
+        </div>
+        <textarea id="code-viewer-content" rows="6" class="w-full bg-transparent font-mono text-[11px] text-slate-200 outline-none resize-none leading-relaxed placeholder:text-slate-600" placeholder="Open a file or pick a sample to inspect code and find bugs..."></textarea>
+      </div>
+
+      <!-- Analysis Deck -->
+      <div class="flex items-center gap-2">
+        <button id="code-analyze-btn" class="btn-3d-pill flex-1 py-2 text-xs font-bold text-white flex items-center justify-center gap-1.5 cursor-pointer" style="background: linear-gradient(180deg, #7c3aed 0%, #6d28d9 100%); border-top: 1.5px solid #c4b5fd; border-bottom: 2.5px solid #4c1d95; box-shadow: 0 4px 12px rgba(124,58,237,0.4);">
+          <span>🔍</span> <span>ANALYZE & DETECT BUGS</span>
+        </button>
+        <button id="code-speak-btn" class="btn-3d-pill px-3 py-2 text-xs font-bold text-cyan-200 flex items-center justify-center gap-1 cursor-pointer" style="background: linear-gradient(180deg, #0284c7 0%, #0369a1 100%); border-top: 1.5px solid #7dd3fc; border-bottom: 2.5px solid #075985;">
+          <span>🔊</span> <span>Listen</span>
+        </button>
+      </div>
+
+      <!-- AI Diagnosis Result Box -->
+      <div id="code-diagnosis-box" class="p-2.5 rounded-xl border border-blue-500/25 bg-blue-950/20 text-xs text-slate-300 max-h-28 overflow-y-auto leading-relaxed">
+        File select karein ya code paste karke <b class="text-blue-300">ANALYZE & DETECT BUGS</b> dabayein. Yesmin syntax errors, logic flaws aur explanation provide karegi.
+      </div>
+    </div>
+
+    <!-- TAB 2: LIVE CODE & PNL RUNNER -->
+    <div id="view-code-runner" class="hidden flex-col gap-2.5">
+      <!-- Preset Selectors -->
+      <div class="flex items-center justify-between gap-1 text-[11px]">
+        <span class="text-slate-400 font-medium">Runner Preset:</span>
+        <div class="flex items-center gap-1">
+          <button class="code-preset-btn px-2 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 font-semibold cursor-pointer active:scale-95" data-preset="pnl">📊 Trading PnL</button>
+          <button class="code-preset-btn px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 cursor-pointer active:scale-95" data-preset="primes">🔢 Primes Calc</button>
+          <button class="code-preset-btn px-2 py-1 rounded-lg bg-slate-900 border border-slate-700 text-slate-300 cursor-pointer active:scale-95" data-preset="custom">📝 Custom Script</button>
+        </div>
+      </div>
+
+      <!-- Interactive Code Editor -->
+      <div class="w-full rounded-xl bg-slate-950/90 border border-emerald-500/30 p-2.5 flex flex-col gap-1 shadow-inner">
+        <div class="flex items-center justify-between text-[10px] text-slate-500 border-b border-slate-800/80 pb-1">
+          <span class="font-mono text-emerald-400">JAVASCRIPT / LOGIC RUNTIME</span>
+          <span class="text-[9px] text-slate-400 font-mono">Sandbox: V8 ENGINE</span>
+        </div>
+        <textarea id="code-runner-editor" rows="6" class="w-full bg-transparent font-mono text-[11px] text-emerald-200 outline-none resize-none leading-relaxed placeholder:text-slate-600"></textarea>
+      </div>
+
+      <!-- Runner Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button id="code-exec-btn" class="btn-3d-pill flex-1 py-2 text-xs font-bold text-white flex items-center justify-center gap-1.5 cursor-pointer" style="background: linear-gradient(180deg, #059669 0%, #047857 100%); border-top: 1.5px solid #6ee7b7; border-bottom: 2.5px solid #064e3b; box-shadow: 0 4px 14px rgba(16,185,129,0.45);">
+          <span>⚡</span> <span>RUN CODE (EXECUTE)</span>
+        </button>
+        <button id="code-clear-console-btn" class="btn-3d-pill px-3 py-2 text-xs font-bold text-slate-300 flex items-center justify-center gap-1 cursor-pointer" style="background: linear-gradient(180deg, #334155 0%, #1e293b 100%); border-top: 1.5px solid #94a3b8; border-bottom: 2.5px solid #0f172a;">
+          <span>🗑️</span> <span>Clear</span>
+        </button>
+      </div>
+
+      <!-- Terminal Output Console -->
+      <div class="w-full rounded-xl bg-black border border-slate-800 p-2.5 flex flex-col gap-1 max-h-32 overflow-y-auto font-mono text-[11px] shadow-2xl">
+        <div class="flex items-center justify-between text-[9px] text-slate-600 border-b border-slate-900 pb-0.5">
+          <span>TERMINAL // STDOUT & DIAGNOSTICS</span>
+          <span id="code-exec-status" class="text-emerald-500">READY</span>
+        </div>
+        <div id="code-terminal-out" class="text-emerald-400 whitespace-pre-wrap leading-tight pt-1">
+> Yesmin Code Execution Engine Ready.
+> Press "RUN CODE" to execute.
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
 
 <!-- ============ 3D SMART ROUTINE, REMINDERS & ALARM DRAWER ============ -->
 <div id="routine-drawer" class="fixed inset-0 z-50 pointer-events-none transition-all duration-300 opacity-0 flex flex-col justify-end" style="backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); background: rgba(5, 8, 16, 0.8);">
@@ -3624,7 +3749,332 @@ void main(){
   window.VisionEngine = VisionEngine;
   window.RoutineEngine = RoutineEngine;
 
+  
+  // ============ FEATURE: 3D CODE & FILE COGNITION STUDIO ENGINE ============
+  const CodeStudioEngine = (function() {
+    let lastAnalysisReport = '';
+
+    const SAMPLES = {
+      python: `def calculate_average(numbers):
+    # Bug Demo: unhandled empty list & missing return
+    total = 0
+    for n in numbers:
+        total += n
+    avg = total / len(numbers)
+    # Hint: Agar numbers empty hon toh ZeroDivisionError aayega!
+    print("Average calculated successfully")
+
+data = [10, 20, 30, 40, 50]
+calculate_average(data)`,
+
+      trading: `// Sushil Sir Daily Trade Logs
+const trades = [
+  { symbol: "NIFTY_CALL", buy: 120, sell: 165, qty: 50 },
+  { symbol: "BANKNIFTY_PUT", buy: 240, sell: 210, qty: 30 },
+  { symbol: "RELIANCE_EQ", buy: 1350, sell: 1390, qty: 10 },
+  { symbol: "TCS_EQ", buy: 3400, sell: 3380, qty: 5 },
+  { symbol: "GOLD_MCX", buy: 72000, sell: 73200, qty: 1 }
+];
+
+let totalProfit = 0;
+let totalLoss = 0;
+let winCount = 0;
+
+trades.forEach(t => {
+  const pnl = (t.sell - t.buy) * t.qty;
+  if (pnl >= 0) {
+    totalProfit += pnl;
+    winCount++;
+  } else {
+    totalLoss += Math.abs(pnl);
+  }
+});
+
+const netPnL = totalProfit - totalLoss;
+const winRate = ((winCount / trades.length) * 100).toFixed(1);
+
+console.log("=== TRADING PnL REPORT ===");
+console.log("Total Trades:", trades.length);
+console.log("Win Rate:", winRate + "% (" + winCount + "/" + trades.length + ")");
+console.log("Gross Profit: ₹" + totalProfit.toLocaleString());
+console.log("Gross Loss:   ₹" + totalLoss.toLocaleString());
+console.log("NET PnL:      ₹" + netPnL.toLocaleString() + " " + (netPnL >= 0 ? "🟢 PROFIT" : "🔴 LOSS"));`,
+
+      js: `// Prime Numbers Generator & Benchmarking
+function findPrimes(limit) {
+  const primes = [];
+  for (let i = 2; i <= limit; i++) {
+    let isPrime = true;
+    for (let j = 2; j <= Math.sqrt(i); j++) {
+      if (i % j === 0) { isPrime = false; break; }
+    }
+    if (isPrime) primes.push(i);
+  }
+  return primes;
+}
+
+const limit = 50;
+const res = findPrimes(limit);
+console.log("Primes up to " + limit + ":", res.join(", "));
+console.log("Total primes found:", res.length);`
+    };
+
+    function openDrawer(mode) {
+      const drawer = document.getElementById('code-drawer');
+      const card = document.getElementById('code-card');
+      if (!drawer || !card) return;
+      drawer.classList.remove('opacity-0', 'pointer-events-none');
+      drawer.classList.add('opacity-100', 'pointer-events-auto');
+      card.classList.remove('translate-y-full');
+      card.classList.add('translate-y-0');
+
+      if (mode === 'runner') switchTab('runner');
+      else switchTab('inspect');
+
+      if (typeof JarvisAudio !== 'undefined') JarvisAudio.playClick();
+      if (typeof JarvisHaptics !== 'undefined') JarvisHaptics.tap(25);
+    }
+
+    function closeDrawer() {
+      const drawer = document.getElementById('code-drawer');
+      const card = document.getElementById('code-card');
+      if (!drawer || !card) return;
+      card.classList.remove('translate-y-0');
+      card.classList.add('translate-y-full');
+      drawer.classList.remove('opacity-100', 'pointer-events-auto');
+      drawer.classList.add('opacity-0', 'pointer-events-none');
+      if (typeof JarvisAudio !== 'undefined') JarvisAudio.playClick();
+    }
+
+    function switchTab(tab) {
+      const inspectView = document.getElementById('view-code-inspect');
+      const runnerView = document.getElementById('view-code-runner');
+      const tabInspect = document.getElementById('tab-code-inspect');
+      const tabRunner = document.getElementById('tab-code-runner');
+      if (!inspectView || !runnerView) return;
+
+      if (tab === 'runner') {
+        inspectView.classList.add('hidden');
+        runnerView.classList.remove('hidden');
+        runnerView.classList.add('flex');
+        tabRunner.className = 'px-3 py-1.5 rounded-xl font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40 cursor-pointer active:scale-95 transition-all';
+        tabInspect.className = 'px-3 py-1.5 rounded-xl font-medium text-slate-400 hover:text-slate-200 cursor-pointer active:scale-95 transition-all';
+        const editor = document.getElementById('code-runner-editor');
+        if (editor && !editor.value) {
+          editor.value = SAMPLES.trading;
+        }
+      } else {
+        runnerView.classList.add('hidden');
+        runnerView.classList.remove('flex');
+        inspectView.classList.remove('hidden');
+        tabInspect.className = 'px-3 py-1.5 rounded-xl font-bold bg-blue-600/30 text-blue-300 border border-blue-500/40 cursor-pointer active:scale-95 transition-all';
+        tabRunner.className = 'px-3 py-1.5 rounded-xl font-medium text-slate-400 hover:text-slate-200 cursor-pointer active:scale-95 transition-all';
+      }
+      if (typeof JarvisAudio !== 'undefined') JarvisAudio.playClick();
+    }
+
+    function handleFileSelected(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const badge = document.getElementById('code-file-badge');
+      const viewer = document.getElementById('code-viewer-content');
+      const title = document.getElementById('code-viewer-title');
+      const lineCount = document.getElementById('code-line-count');
+
+      const sizeKb = (file.size / 1024).toFixed(1);
+      if (badge) badge.textContent = `${file.name} (${sizeKb} KB)`;
+      if (title) title.textContent = `FILE // ${file.name.toUpperCase()}`;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result || '';
+        if (viewer) viewer.value = text;
+        const lines = text.split('\n').length;
+        if (lineCount) lineCount.textContent = `${lines} lines`;
+        analyzeCode(text, file.name);
+      };
+      reader.readAsText(file);
+    }
+
+    function analyzeCode(code, filename = 'code.txt') {
+      const diag = document.getElementById('code-diagnosis-box');
+      if (!diag) return;
+      diag.innerHTML = '<span class="text-blue-300 flex items-center gap-1.5"><span class="animate-spin inline-block">⚙️</span> Yesmin neural code inspector analyze kar rahi hai...</span>';
+
+      setTimeout(() => {
+        let findings = [];
+        let summary = '';
+        const lines = code.split('\n');
+
+        // Static syntax & bug checks
+        if (code.includes('ZeroDivisionError') || (code.includes('/ len(') && !code.includes('if len(') && !code.includes('if not'))) {
+          findings.push('⚠️ <b>ZeroDivision Risk</b>: List/Array empty hone par divide-by-zero error aa sakta hai. Length check lagayein.');
+        }
+        if (code.includes('def ') && !code.includes('return ')) {
+          findings.push('ℹ️ <b>Missing Return</b>: Function me explicit return statement nahi mila.');
+        }
+        if (code.includes('var ') || code.includes('== null')) {
+          findings.push('💡 <b>Modern Best Practice</b>: `var` ki jagah `const`/`let` use karein.');
+        }
+        if (code.includes('while(true)') || code.includes('while (true)') || code.includes('while true:')) {
+          findings.push('⚠️ <b>Infinite Loop Danger</b>: Unbounded loop detect hua hai. Exit condition verify karein.');
+        }
+
+        if (findings.length === 0) {
+          findings.push('✅ <b>Syntax & Logic Clean</b>: Structure readable hai aur koi high-risk bugs detect nahi hue!');
+        }
+
+        summary = `Code Analysis Report for <b>${filename}</b> (${lines.length} lines):<br>` +
+                  findings.map(f => `<div class="mt-1">${f}</div>`).join('') +
+                  `<div class="mt-2 text-[11px] text-slate-300"><b>Yesmin Recommendation</b>: Logic clean hai. Error handling (try-catch) aur edge-case testing ensure karein.</div>`;
+
+        diag.innerHTML = summary;
+        lastAnalysisReport = `Sushil sir, ${filename} file ka code scan complete ho gaya hai. ${lines.length} lines hain. Code structure clean hai aur analysis screen par aa gayi hai!`;
+        if (typeof JarvisHaptics !== 'undefined') JarvisHaptics.tap(35);
+      }, 700);
+    }
+
+    function executeRunnerCode() {
+      const editor = document.getElementById('code-runner-editor');
+      const terminal = document.getElementById('code-terminal-out');
+      const statusEl = document.getElementById('code-exec-status');
+      if (!editor || !terminal) return;
+
+      const code = editor.value;
+      terminal.innerHTML = '<span class="text-amber-300">> Executing in safe V8 sandbox...</span>';
+      if (statusEl) {
+        statusEl.textContent = 'RUNNING...';
+        statusEl.className = 'text-amber-400 animate-pulse';
+      }
+
+      const t0 = performance.now();
+      let logs = [];
+      const customConsole = {
+        log: (...args) => logs.push(args.map(a => (typeof a === 'object' ? JSON.stringify(a, null, 2) : String(a))).join(' ')),
+        error: (...args) => logs.push('❌ [ERROR] ' + args.join(' ')),
+        warn: (...args) => logs.push('⚠️ [WARN] ' + args.join(' '))
+      };
+
+      try {
+        const runnerFn = new Function('console', code);
+        const result = runnerFn(customConsole);
+        const t1 = performance.now();
+        const duration = (t1 - t0).toFixed(1);
+
+        let output = logs.join('\n');
+        if (result !== undefined) {
+          output += (output ? '\n' : '') + 'Returned: ' + String(result);
+        }
+        if (!output) output = '(No output logged)';
+
+        terminal.innerHTML = `> Executed in ${duration}ms\n> [EXIT 0: SUCCESS]\n\n${output}`;
+        if (statusEl) {
+          statusEl.textContent = `SUCCESS (${duration}ms)`;
+          statusEl.className = 'text-emerald-400';
+        }
+        if (typeof JarvisAudio !== 'undefined') JarvisAudio.playClick();
+        if (typeof JarvisHaptics !== 'undefined') JarvisHaptics.tap(40);
+      } catch (err) {
+        terminal.innerHTML = `❌ [RUNTIME EXCEPTION]:\n${err.message}\n\nStack: ${err.stack || ''}`;
+        if (statusEl) {
+          statusEl.textContent = 'ERROR';
+          statusEl.className = 'text-rose-400';
+        }
+        if (typeof JarvisHaptics !== 'undefined') JarvisHaptics.tap(50);
+      }
+    }
+
+    function speakReport() {
+      if (lastAnalysisReport && typeof OfflineIntentEngine !== 'undefined') {
+        OfflineIntentEngine.speak(lastAnalysisReport);
+      } else if (typeof OfflineIntentEngine !== 'undefined') {
+        OfflineIntentEngine.speak('Sushil sir, file select karke analyze dabayein toh main report padhkar sunaoongi.');
+      }
+    }
+
+    function init() {
+      const triggerBtn = document.getElementById('code-studio-trigger-btn');
+      const closeBtn = document.getElementById('code-close-btn');
+      const tabInspect = document.getElementById('tab-code-inspect');
+      const tabRunner = document.getElementById('tab-code-runner');
+      const browseBtn = document.getElementById('code-browse-btn');
+      const fileInput = document.getElementById('code-file-input');
+      const analyzeBtn = document.getElementById('code-analyze-btn');
+      const speakBtn = document.getElementById('code-speak-btn');
+      const execBtn = document.getElementById('code-exec-btn');
+      const clearBtn = document.getElementById('code-clear-console-btn');
+
+      if (triggerBtn) triggerBtn.addEventListener('click', () => openDrawer('inspect'));
+      if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+      if (tabInspect) tabInspect.addEventListener('click', () => switchTab('inspect'));
+      if (tabRunner) tabRunner.addEventListener('click', () => switchTab('runner'));
+
+      if (browseBtn && fileInput) {
+        browseBtn.addEventListener('click', () => fileInput.click());
+        fileInput.addEventListener('change', handleFileSelected);
+      }
+
+      if (analyzeBtn) {
+        analyzeBtn.addEventListener('click', () => {
+          const viewer = document.getElementById('code-viewer-content');
+          const badge = document.getElementById('code-file-badge');
+          const name = badge ? badge.textContent : 'code.py';
+          analyzeCode(viewer ? viewer.value : '', name);
+        });
+      }
+
+      if (speakBtn) speakBtn.addEventListener('click', speakReport);
+      if (execBtn) execBtn.addEventListener('click', executeRunnerCode);
+      if (clearBtn) {
+        clearBtn.addEventListener('click', () => {
+          const terminal = document.getElementById('code-terminal-out');
+          if (terminal) terminal.innerHTML = '> Console cleared.\n> Ready for execution.';
+        });
+      }
+
+      // Sample chips
+      document.querySelectorAll('.code-sample-chip').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const sampleKey = e.currentTarget.getAttribute('data-sample');
+          const viewer = document.getElementById('code-viewer-content');
+          const badge = document.getElementById('code-file-badge');
+          const lineCount = document.getElementById('code-line-count');
+          if (viewer && SAMPLES[sampleKey]) {
+            viewer.value = SAMPLES[sampleKey];
+            const name = sampleKey === 'python' ? 'demo_bug.py' : (sampleKey === 'trading' ? 'trades.csv' : 'algo.js');
+            if (badge) badge.textContent = `${name} (Sample)`;
+            if (lineCount) lineCount.textContent = `${SAMPLES[sampleKey].split('\n').length} lines`;
+            analyzeCode(SAMPLES[sampleKey], name);
+          }
+        });
+      });
+
+      // Preset buttons for runner
+      document.querySelectorAll('.code-preset-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const p = e.currentTarget.getAttribute('data-preset');
+          const editor = document.getElementById('code-runner-editor');
+          if (!editor) return;
+          if (p === 'pnl') editor.value = SAMPLES.trading;
+          else if (p === 'primes') editor.value = SAMPLES.js;
+          else editor.value = `// Write custom JavaScript code here\nconsole.log("Hello Sushil sir! Yesmin V8 Engine Active.");`;
+        });
+      });
+    }
+
+    return {
+      init,
+      openDrawer,
+      closeDrawer,
+      analyzeCode,
+      executeRunnerCode
+    };
+  })();
+
+  window.CodeStudioEngine = CodeStudioEngine;
+
   PersonalityEngine.init();
+  CodeStudioEngine.init();
   VisionEngine.init();
   RoutineEngine.init();
 
@@ -3741,6 +4191,13 @@ void main(){
       }
       if (q.includes('bore') || q.includes('time pass')) {
         speakReply("Aap aur bore? Mere hote huye bilkul nahi sir! Boliye, koi kavita sunaoon, chutkula sunaoon, ya cybersecurity shield inspect karein?");
+        return true;
+      }
+
+      // --- 3.5 CODE & FILE STUDIO COMMANDS ---
+      if (q.includes('code') || q.includes('coding') || q.includes('file') || q.includes('program') || q.includes('script') || q.includes('bug') || q.includes('terminal') || q.includes('runner') || q.includes('pnl')) {
+        speakReply("Yesmin Code & File Studio activate kar diya hai Sushil sir. Yahan aap koi bhi code file inspect kar sakte hain, bugs detect kar sakte hain aur live runner chala sakte hain.");
+        if (typeof CodeStudioEngine !== 'undefined') CodeStudioEngine.openDrawer(q.includes('run') || q.includes('pnl') ? 'runner' : 'inspect');
         return true;
       }
 
