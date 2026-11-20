@@ -1970,6 +1970,11 @@ tailwind.config = {
         <span id="github-file-sha" class="text-[9px] font-mono text-slate-500 truncate max-w-[80px]"></span>
       </div>
 
+      <!-- Live Status Banner (Visible without scrolling) -->
+      <div id="github-status-box" class="p-2 rounded-xl bg-slate-950 border border-blue-500/30 text-[11px] font-mono text-cyan-300 min-h-[30px] flex items-center justify-between">
+        <span>Status: Tap IMPORT to fetch repository files</span>
+      </div>
+
       <!-- Code Editor / Viewer -->
       <div class="relative w-full rounded-xl bg-slate-950/90 border border-blue-500/20 p-2 flex flex-col gap-1 shadow-inner">
         <div class="flex items-center justify-between text-[10px] text-slate-400 border-b border-slate-800/80 pb-1">
@@ -3320,34 +3325,67 @@ void main(){
       if (!repoName) repoName = 'trader99930/yesmin-yunay';
       const statusBox = document.getElementById('github-status-box');
       const fileSelect = document.getElementById('github-file-select');
-      if (statusBox) statusBox.textContent = `Connecting to GitHub API for ${repoName}...`;
+      const importBtn = document.getElementById('github-import-btn');
+
+      if (statusBox) statusBox.innerHTML = `<span class="text-amber-400 animate-pulse">⚡ Connecting to GitHub for ${repoName}...</span>`;
+      if (importBtn) importBtn.disabled = true;
 
       try {
-        const res = await fetch(`https://api.github.com/repos/${repoName}/contents`, {
-          headers: {
-            'Authorization': 'token ' + getGitHubToken(),
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
-        const data = await res.json();
+        const b = window.JarvisBridge || (window.parent && window.parent.JarvisBridge);
+        let rawJson = '';
+        const token = getGitHubToken();
+        const url = `https://api.github.com/repos/${repoName}/contents`;
+
+        if (b && b.httpGet) {
+          rawJson = b.httpGet(url, token);
+        } else {
+          const res = await fetch(url, {
+            headers: {
+              'Authorization': 'token ' + token,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+          rawJson = await res.text();
+        }
+
+        if (!rawJson || rawJson.trim() === '') {
+          throw new Error('Empty response from GitHub');
+        }
+
+        const data = JSON.parse(rawJson);
+        if (data.message && !Array.isArray(data)) {
+          throw new Error(data.message);
+        }
+
         currentRepoFiles = Array.isArray(data) ? data : [];
 
         if (fileSelect) {
-          fileSelect.innerHTML = '<option value="">-- Choose file to inspect & edit (' + currentRepoFiles.length + ' found) --</option>' +
-            currentRepoFiles.map(f => `<option value="${f.path}" data-sha="${f.sha}" data-type="${f.type}">${f.type === 'dir' ? '📁 ' : '📄 '} ${f.name} (${(f.size ? (f.size/1024).toFixed(1) : 0)} KB)</option>`).join('');
+          fileSelect.innerHTML = '<option value="">-- Choose file to inspect (' + currentRepoFiles.length + ' found) --</option>' +
+            currentRepoFiles.map(f => `<option value="${f.path}" data-sha="${f.sha}" data-type="${f.type}">${f.type === 'dir' ? '📁 ' : '📄 '} ${f.name} (${f.size ? (f.size/1024).toFixed(1) : 0} KB)</option>`).join('');
         }
 
-        if (statusBox) statusBox.innerHTML = `✓ Imported ${currentRepoFiles.length} files from <b class="text-emerald-400">${repoName}</b>`;
-        
+        if (statusBox) {
+          statusBox.innerHTML = `✓ <b class="text-emerald-400">Imported ${currentRepoFiles.length} files</b> from ${repoName.split('/')[1] || repoName}`;
+        }
+
+        // Auto-load first file or README.md if found
+        const firstFile = currentRepoFiles.find(f => f.name.toLowerCase().includes('readme')) || currentRepoFiles.find(f => f.type === 'file');
+        if (firstFile) {
+          if (fileSelect) fileSelect.value = firstFile.path;
+          loadGitHubFile(firstFile.path);
+        }
+
         if (typeof OfflineIntentEngine !== 'undefined') {
-          OfflineIntentEngine.speak(`Sushil sir, repo ${repoName.split('/')[1] || repoName} import ho gayi hai. Isme ${currentRepoFiles.length} files hain.`);
+          OfflineIntentEngine.speak(`Sushil sir, repo ${repoName.split('/')[1] || repoName} import ho gayi hai. Total ${currentRepoFiles.length} files available hain.`);
         }
       } catch (err) {
-        if (statusBox) statusBox.textContent = `Error: ${err.message}`;
+        if (statusBox) statusBox.innerHTML = `⚠️ <span class="text-rose-400">Error: ${err.message}</span>`;
         if (typeof OfflineIntentEngine !== 'undefined') {
-          OfflineIntentEngine.speak(`Sushil sir, repo import karne me error aayi: ${err.message}`);
+          OfflineIntentEngine.speak(`Repo import karne me error aayi sir: ${err.message}`);
         }
+      } finally {
+        if (importBtn) importBtn.disabled = false;
       }
     }
 
@@ -3361,17 +3399,28 @@ void main(){
       const linesBadge = document.getElementById('github-editor-lines');
       const shaBadge = document.getElementById('github-file-sha');
 
-      if (statusBox) statusBox.textContent = `Downloading ${path}...`;
+      if (statusBox) statusBox.innerHTML = `<span class="text-amber-400 animate-pulse">⏳ Loading ${path}...</span>`;
 
       try {
-        const res = await fetch(`https://api.github.com/repos/${repoName}/contents/${path}`, {
-          headers: {
-            'Authorization': 'token ' + getGitHubToken(),
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        const data = await res.json();
+        const b = window.JarvisBridge || (window.parent && window.parent.JarvisBridge);
+        let rawJson = '';
+        const token = getGitHubToken();
+        const url = `https://api.github.com/repos/${repoName}/contents/${path}`;
+
+        if (b && b.httpGet) {
+          rawJson = b.httpGet(url, token);
+        } else {
+          const res = await fetch(url, {
+            headers: {
+              'Authorization': 'token ' + token,
+              'Accept': 'application/vnd.github.v3+json'
+            }
+          });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          rawJson = await res.text();
+        }
+
+        const data = JSON.parse(rawJson);
         currentSelectedFile = data;
 
         // Base64 decode safe for UTF-8
@@ -3389,9 +3438,9 @@ void main(){
         const lineCount = (decodedContent.match(/\n/g) || []).length + 1;
         if (linesBadge) linesBadge.textContent = `${lineCount} lines`;
         if (shaBadge) shaBadge.textContent = `SHA: ${(data.sha || '').slice(0, 7)}`;
-        if (statusBox) statusBox.textContent = `Loaded ${path} (${(data.size/1024).toFixed(1)} KB)`;
+        if (statusBox) statusBox.innerHTML = `✓ Loaded <b class="text-cyan-300">${data.name || path}</b> (${(data.size/1024).toFixed(1)} KB)`;
       } catch(err) {
-        if (statusBox) statusBox.textContent = `Error loading file: ${err.message}`;
+        if (statusBox) statusBox.innerHTML = `⚠️ <span class="text-rose-400">Error loading file: ${err.message}</span>`;
       }
     }
 
@@ -3399,7 +3448,7 @@ void main(){
       const editor = document.getElementById('github-code-editor');
       const statusBox = document.getElementById('github-status-box');
       if (!editor || !editor.value) {
-        if (statusBox) statusBox.textContent = 'Pehle koi file load karein!';
+        if (statusBox) statusBox.innerHTML = '<span class="text-amber-400">Pehle koi file select ya load karein!</span>';
         return;
       }
 
@@ -3434,7 +3483,7 @@ void main(){
 
       if (statusBox) statusBox.innerHTML = `✓ <b class="text-purple-300">AI Changes Applied!</b> Ready to Commit & Push.`;
       if (typeof OfflineIntentEngine !== 'undefined') {
-        OfflineIntentEngine.speak('Sushil sir, AI ne aapke bataye mutabik code modify kar diya hai. Ab aap Commit & Push par tap kar sakte hain.');
+        OfflineIntentEngine.speak('Sushil sir, AI ne aapke bataye mutabik code modify kar diya hai. Ab aap Commit aur Push dabayein.');
       }
     }
 
@@ -3451,30 +3500,41 @@ void main(){
 
       if (!editor || !editor.value) return;
 
-      if (statusBox) statusBox.textContent = `Pushing commit to GitHub: ${repoName}...`;
+      if (statusBox) statusBox.innerHTML = `<span class="text-amber-400 animate-pulse">🚀 Pushing commit to GitHub: ${repoName}...</span>`;
 
       try {
         const encodedContent = btoa(unescape(encodeURIComponent(editor.value)));
-        const res = await fetch(`https://api.github.com/repos/${repoName}/contents/${currentSelectedFile.path}`, {
-          method: 'PUT',
-          headers: {
-            'Authorization': 'token ' + getGitHubToken(),
-            'Accept': 'application/vnd.github.v3+json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            message: msg,
-            content: encodedContent,
-            sha: currentSelectedFile.sha
-          })
+        const token = getGitHubToken();
+        const url = `https://api.github.com/repos/${repoName}/contents/${currentSelectedFile.path}`;
+        const bodyStr = JSON.stringify({
+          message: msg,
+          content: encodedContent,
+          sha: currentSelectedFile.sha
         });
 
-        if (!res.ok) {
-          const errData = await res.json().catch(() => ({}));
-          throw new Error(errData.message || `HTTP ${res.status}`);
+        const b = window.JarvisBridge || (window.parent && window.parent.JarvisBridge);
+        let rawJson = '';
+
+        if (b && b.httpPut) {
+          rawJson = b.httpPut(url, token, bodyStr);
+        } else {
+          const res = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Authorization': 'token ' + token,
+              'Accept': 'application/vnd.github.v3+json',
+              'Content-Type': 'application/json'
+            },
+            body: bodyStr
+          });
+          rawJson = await res.text();
         }
 
-        const data = await res.json();
+        const data = JSON.parse(rawJson);
+        if (data.message && !data.content) {
+          throw new Error(data.message);
+        }
+
         if (data.content && data.content.sha) {
           currentSelectedFile.sha = data.content.sha;
           const shaBadge = document.getElementById('github-file-sha');
@@ -3487,10 +3547,10 @@ void main(){
         }
 
         if (typeof OfflineIntentEngine !== 'undefined') {
-          OfflineIntentEngine.speak(`Sushil sir, badhaai ho! Code safalta se GitHub repo par commit aur push ho gaya hai!`);
+          OfflineIntentEngine.speak(`Sushil sir, badhaai ho! Code safalta se GitHub par commit aur push ho gaya hai!`);
         }
       } catch(err) {
-        if (statusBox) statusBox.textContent = `Push failed: ${err.message}`;
+        if (statusBox) statusBox.innerHTML = `⚠️ <span class="text-rose-400">Push failed: ${err.message}</span>`;
         if (typeof OfflineIntentEngine !== 'undefined') {
           OfflineIntentEngine.speak(`Push karne me dikkat aayi: ${err.message}`);
         }
